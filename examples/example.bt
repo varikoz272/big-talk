@@ -1,0 +1,79 @@
+| Data types |
+
+x := 1          ; Num
+x := 1.1        ; Num
+c := 'a'        ; UTF-8 char
+string := "abc" ; UTF-8 string
+answer := true  ; bool
+array := 1 2 3  ; array of Num
+
+| Methods |
+
+x := x + 1                    ; + returns Num
+x += x                        ; += has no return
+answer := is x floating       ; returns true if x is a floating Num
+answer := is x between 3, 5   ; returns true if 3 <= x < 5
+y := is x > 10 then x else 10 ; returns maximum
+is answer then answer print   ; if answer == true prints true
+
+| Conditions |
+
+is 5 > 1 then "5 is greater then 1" print
+x := 1 ... is x negative then "x < 0" print
+is x > 0 then
+	"x if positive" print
+
+| Loops |
+
+5 times
+	" ! \n" print
+
+x := 0
+
+while is x < 10 then
+	x print
+	x += 1
+
+
+x := 0
+
+while is x < 10 then ; then might receive 2 args: step (x += 1) and action
+	x += 1,
+	x print
+
+for x range
+	x print
+
+for ~r := 10 to 15   ; r is temporary variable existing only in loop. "to" returns range
+	r print
+
+| Class |
+
+NumHolder
+	buffer := Num
+
+	create < buffer >
+		self buffer := buffer
+
+	receive newNum
+		buffer := newNum
+
+	ask buffer
+
+	ask bufferTimes < times >
+		buffer * times
+
+
+holder := NumHolder of 5
+if is holder buffer = 5 then if is holder bufferTimes 5 = 25 "SUCCESS" print
+
+
+
+| Test |
+
+test "NumHolder simple test"
+	expect holder bufferTimes 5 = holder buffer * 5 ; if returns false test is failed
+
+
+
+
