@@ -14,7 +14,7 @@ test "1" {
 }
 
 test "1 + 1 tokenizing" {
-    const tokenized = tk.ExpressionTokenizer().getNumValues("1 + 1");
+    const tokenized = try tk.ExpressionTokenizer().getNumValues("1 + 1");
 
     std.debug.print("\n[TEST] \"1 + 1\" numValues() == {}, {}\n", .{ tokenized[0].zig_val, tokenized[1].zig_val });
     try expext(tokenized[0].zig_val == 1);
@@ -61,4 +61,25 @@ test "5/2" {
 
     std.debug.print("\n[TEST] \"5/2\" returned {}\n", .{tokenized.zig_val});
     try expext(tokenized.zig_val == 2);
+}
+
+test "   5          + " {
+    const err = tk.ExpressionTokenizer().Tokenize("   5          + ");
+
+    std.debug.print("\n[TEST] \"   5          + \" returned {!}\n", .{err});
+    try expext(err == tk.TokenError.FoundOnlyFirst);
+}
+
+test "/" {
+    const err = tk.ExpressionTokenizer().Tokenize("/");
+
+    std.debug.print("\n[TEST] \"/\" returned {!}\n", .{err});
+    try expext(err == tk.TokenError.FoundZero);
+}
+
+test "5 2" {
+    const err = tk.ExpressionTokenizer().Tokenize("5 2");
+
+    std.debug.print("\n[TEST] \"5 2\" returned {!}\n", .{err});
+    try expext(err == tk.TokenError.SignNotFound);
 }

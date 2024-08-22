@@ -1,12 +1,18 @@
 const std = @import("std");
 
+pub fn AskingTokenizer() type {
+    return struct {
+        const Self = @This();
+    };
+}
+
 pub fn ExpressionTokenizer() type {
     return struct {
         const Self = @This();
 
-        pub fn Tokenize(string: []const u8) SignError!NumValue() {
+        pub fn Tokenize(string: []const u8) TokenError!NumValue() {
             const sign = try getSign(string);
-            const nums = getNumValues(string);
+            const nums = try getNumValues(string);
 
             return merge(nums, sign);
         }
@@ -20,17 +26,18 @@ pub fn ExpressionTokenizer() type {
             }
         }
 
-        pub fn getSign(string: []const u8) SignError!Sign {
+        pub fn getSign(string: []const u8) TokenError!Sign {
             return Sign.findFromString(string);
         }
 
-        pub fn getNumValues(string: []const u8) [2]NumValue() {
+        pub fn getNumValues(string: []const u8) TokenError![2]NumValue() {
             var f_start: ?usize = null;
             var f_inside: bool = false;
             var s_start: ?usize = null;
             var num_len: usize = 0;
 
-            var out: [2]NumValue() = undefined;
+            var out_f: ?NumValue() = null;
+            var out_s: ?NumValue() = null;
 
             for (0..string.len + 1) |i| {
                 const char: ?u8 = if (i < string.len) string[i] else null;
@@ -38,13 +45,15 @@ pub fn ExpressionTokenizer() type {
                 if (char == null) {
                     if (num_len > 0) {
                         if (f_inside) {
-                            out[0] = NumValue().fromString(string[i - num_len .. i]) catch unreachable;
+                            out_f = NumValue().fromString(string[i - num_len .. i]) catch unreachable;
                             f_inside = false;
                         } else {
-                            out[1] = NumValue().fromString(string[i - num_len .. i]) catch unreachable;
-                            return out;
+                            out_s = NumValue().fromString(string[i - num_len .. i]) catch unreachable;
+                            return [2]NumValue(){ out_f.?, out_s.? };
                         }
                     }
+
+                    continue;
                 }
 
                 if (std.ascii.isDigit(char.?)) {
@@ -57,11 +66,11 @@ pub fn ExpressionTokenizer() type {
                 } else {
                     if (num_len > 0) {
                         if (f_inside) {
-                            out[0] = NumValue().fromString(string[i - num_len .. i]) catch unreachable;
+                            out_f = NumValue().fromString(string[i - num_len .. i]) catch unreachable;
                             f_inside = false;
                         } else {
-                            out[1] = NumValue().fromString(string[i - num_len .. i]) catch unreachable;
-                            return out;
+                            out_s = NumValue().fromString(string[i - num_len .. i]) catch unreachable;
+                            return [2]NumValue(){ out_f.?, out_s.? };
                         }
                     }
 
@@ -69,7 +78,7 @@ pub fn ExpressionTokenizer() type {
                 }
             }
 
-            return out;
+            return if (out_f == null) TokenError.FoundZero else TokenError.FoundOnlyFirst;
         }
     };
 }
@@ -77,7 +86,18 @@ pub fn ExpressionTokenizer() type {
 pub const TokenError = error{
     FoundOnlyFirst,
     FoundZero,
+    NotAMathSign,
+    SignNotFound,
 };
+
+pub fn Message(err: TokenError) []const u8 {
+    switch (err) {
+        .FoundOnlyFirst => return "Only first token found",
+        .FoundZero => return "No tokens found",
+        .NotAMathSign => return "This is not a math sign",
+        .SignNotFound => return "No math signs found",
+    }
+}
 
 pub fn MathValue() type {
     return struct {
@@ -85,18 +105,13 @@ pub fn MathValue() type {
 
         val: Sign,
 
-        pub fn fromChar(char: u8) SignError.NotAMathSign!Self {
+        pub fn fromChar(char: u8) TokenError.NotAMathSign!Self {
             return Self{
                 .val = Sign.fromChar(char),
             };
         }
     };
 }
-
-pub const SignError = error{
-    NotAMathSign,
-    NotFound,
-};
 
 pub const Sign = enum(u8) {
     const Self = @This();
@@ -106,23 +121,23 @@ pub const Sign = enum(u8) {
     Multiply = '*',
     Divide = '/',
 
-    pub fn fromChar(char: u8) SignError!Self {
+    pub fn fromChar(char: u8) TokenError!Self {
         switch (char) {
             @intFromEnum(Sign.Plus) => return .Plus,
             @intFromEnum(Sign.Minus) => return .Minus,
             @intFromEnum(Sign.Multiply) => return .Multiply,
             @intFromEnum(Sign.Divide) => return .Divide,
-            else => return SignError.NotAMathSign,
+            else => return TokenError.NotAMathSign,
         }
     }
 
-    pub fn findFromString(string: []const u8) SignError!Self {
+    pub fn findFromString(string: []const u8) TokenError!Self {
         for (string) |char| {
             const sign = Sign.fromChar(char) catch continue;
             return sign;
         }
 
-        return SignError.NotFound;
+        return TokenError.SignNotFound;
     }
 };
 

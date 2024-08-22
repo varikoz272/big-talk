@@ -72,8 +72,4 @@ if is holder buffer = 5 then if is holder bufferTimes 5 = 25 "SUCCESS" print
 | Test |
 
 test "NumHolder simple test"
-	expect holder bufferTimes 5 = holder buffer * 5 ; if returns false test is failed
-
-
-
-
+	Expectation of (holder bufferTimes 5 = holder buffer * 5) verify; if returns false test is failed
