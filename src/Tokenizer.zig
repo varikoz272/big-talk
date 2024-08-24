@@ -1,10 +1,11 @@
 const std = @import("std");
 
-pub fn AskingTokenizer() type {
-    return struct {
-        const Self = @This();
-    };
-}
+pub const Token = enum {
+    Object,
+    Message,
+    PriorityOpen,
+    PriorityClose,
+};
 
 pub fn ExpressionTokenizer() type {
     return struct {
@@ -15,6 +16,20 @@ pub fn ExpressionTokenizer() type {
             const nums = try getNumValues(string);
 
             return merge(nums, sign);
+        }
+
+        pub fn getTokenizedOuput(string: []const u8) []const u8 {
+            return getOutput(Tokenize(string));
+        }
+
+        fn getOutput(new_output: TokenError!NumValue()) []const u8 {
+            if (new_output) |val| {
+                var out: []u8 = undefined;
+                std.fmt.bufPrint(&out, "{}", .{val.zig_val}) catch unreachable;
+                return out;
+            } else |err| {
+                return Message(err);
+            }
         }
 
         fn merge(nums: [2]NumValue(), sign: Sign) NumValue() {
