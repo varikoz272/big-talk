@@ -1,5 +1,4 @@
 const std = @import("std");
-const expext = std.testing.expect;
-const tk = @import("Tokenizer.zig");
+const tok = @import("Token.zig");
 
-pub fn main() !void {}
+pub fn main() void {}

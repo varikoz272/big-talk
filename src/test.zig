@@ -1,81 +1,57 @@
 const std = @import("std");
-const expext = std.testing.expect;
-const tk = @import("Tokenizer.zig");
+const tok = @import("Token.zig");
+const expect = std.testing.expect;
 
-test "1" {
-    const tokenized = try tk.NumValue().fromString("1");
+test "[SPLIT] \"hello world\"" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
 
-    std.debug.print("\n[TEST] \"1\" returned {}\n", .{tokenized.zig_val});
-    try expext(tokenized.zig_val == 1);
+    var words = tok.splitByWords("hello world", gpa.allocator());
+    defer words.deinit();
+
+    std.debug.print("Result: ", .{});
+    for (words.items) |cur_word| std.debug.print("{s}, ", .{cur_word});
+    std.debug.print("                 | Expected: hello, world\n", .{});
+
+    try expect(words.items.len == 2);
+    try expect(tok.areEqualStrings(words.items[0], "hello"));
+    try expect(tok.areEqualStrings(words.items[1], "world"));
 }
 
-test "1 + 1 tokenizing" {
-    const tokenized = try tk.ExpressionTokenizer().getNumValues("1 + 1");
+test "[SPLIT]\" 1 2 3   4 5  6   7  8  9 0\"" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
 
-    std.debug.print("\n[TEST] \"1 + 1\" numValues() == {}, {}\n", .{ tokenized[0].zig_val, tokenized[1].zig_val });
-    try expext(tokenized[0].zig_val == 1);
-    try expext(tokenized[1].zig_val == 1);
+    var words = tok.splitByWords(" 1 2 3   4 5  6   7  8  9 0", gpa.allocator());
+    defer words.deinit();
+
+    std.debug.print("Result: ", .{});
+    for (words.items) |cur_word| std.debug.print("{s}, ", .{cur_word});
+    std.debug.print(" | Expected: 1, 2, 3, 4, 5, 6, 7, 8, 9, 0\n", .{});
+
+    try expect(words.items.len == 10);
+    try expect(tok.areEqualStrings(words.items[0], "1"));
+    try expect(tok.areEqualStrings(words.items[1], "2"));
+    try expect(tok.areEqualStrings(words.items[2], "3"));
+    try expect(tok.areEqualStrings(words.items[3], "4"));
+    try expect(tok.areEqualStrings(words.items[4], "5"));
+    try expect(tok.areEqualStrings(words.items[5], "6"));
+    try expect(tok.areEqualStrings(words.items[6], "7"));
+    try expect(tok.areEqualStrings(words.items[7], "8"));
+    try expect(tok.areEqualStrings(words.items[8], "9"));
+    try expect(tok.areEqualStrings(words.items[9], "0"));
 }
 
-test "1 + 1" {
-    const tokenized = try tk.ExpressionTokenizer().Tokenize("1 + 1");
+test "[SPLIT]\"\"" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
 
-    std.debug.print("\n[TEST] \"1 + 1\" returned {}\n", .{tokenized.zig_val});
-    try expext(tokenized.zig_val == 2);
-}
+    var words = tok.splitByWords("", gpa.allocator());
+    defer words.deinit();
 
-test "1 - 1" {
-    const tokenized = try tk.ExpressionTokenizer().Tokenize("1 - 1");
+    std.debug.print("Result: ", .{});
+    for (words.items) |cur_word| std.debug.print("{s}, ", .{cur_word});
+    std.debug.print(" | Expected: \n", .{});
 
-    std.debug.print("\n[TEST] \"1 - 1\" returned {}\n", .{tokenized.zig_val});
-    try expext(tokenized.zig_val == 0);
-}
-
-test "11 +  0" {
-    const tokenized = try tk.ExpressionTokenizer().Tokenize("11 +  0");
-
-    std.debug.print("\n[TEST] \"11 +  0\" returned {}\n", .{tokenized.zig_val});
-    try expext(tokenized.zig_val == 11);
-}
-
-test "4/ 2" {
-    const tokenized = try tk.ExpressionTokenizer().Tokenize("4/ 2");
-
-    std.debug.print("\n[TEST] \"4/ 2\" returned {}\n", .{tokenized.zig_val});
-    try expext(tokenized.zig_val == 2);
-}
-
-test "  2 * 4" {
-    const tokenized = try tk.ExpressionTokenizer().Tokenize("  2 * 4");
-
-    std.debug.print("\n[TEST] \"  2 * 4\" returned {}\n", .{tokenized.zig_val});
-    try expext(tokenized.zig_val == 8);
-}
-
-test "5/2" {
-    const tokenized = try tk.ExpressionTokenizer().Tokenize("5/2");
-
-    std.debug.print("\n[TEST] \"5/2\" returned {}\n", .{tokenized.zig_val});
-    try expext(tokenized.zig_val == 2);
-}
-
-test "   5          + " {
-    const err = tk.ExpressionTokenizer().Tokenize("   5          + ");
-
-    std.debug.print("\n[TEST] \"   5          + \" returned {!}\n", .{err});
-    try expext(err == tk.TokenError.FoundOnlyFirst);
-}
-
-test "/" {
-    const err = tk.ExpressionTokenizer().Tokenize("/");
-
-    std.debug.print("\n[TEST] \"/\" returned {!}\n", .{err});
-    try expext(err == tk.TokenError.FoundZero);
-}
-
-test "5 2" {
-    const err = tk.ExpressionTokenizer().Tokenize("5 2");
-
-    std.debug.print("\n[TEST] \"5 2\" returned {!}\n", .{err});
-    try expext(err == tk.TokenError.SignNotFound);
+    try expect(words.items.len == 0);
 }
