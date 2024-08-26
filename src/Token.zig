@@ -25,8 +25,11 @@ pub fn splitByWords(string: []const u8, allocator: std.mem.Allocator) std.ArrayL
     return words;
 }
 
+/// Compares target with all strings passed in arraylist. Use this over areEqualStrings if you compare more then once.
+/// Allocates and frees additional memory in process.
 pub fn areEqualOneOfStrings(target: []const u8, strings: std.ArrayList([]const u8)) bool {
-    // var valid_strings_ids: [strings.items.len]?usize = null ** strings.len;
+    if (strings.items.len == 0) return false;
+
     var valid_strings_ids = strings.allocator.alloc(?usize, strings.items.len) catch unreachable;
     for (valid_strings_ids) |*id| id.* = null;
     defer strings.allocator.free(valid_strings_ids);
@@ -40,7 +43,6 @@ pub fn areEqualOneOfStrings(target: []const u8, strings: std.ArrayList([]const u
         }
     }
 
-    // var are_valid: [valid_strings_len]bool = true ** valid_strings_len;
     var are_valid = strings.allocator.alloc(bool, valid_strings_len) catch unreachable;
     for (are_valid) |*is_valid| is_valid.* = true;
     defer strings.allocator.free(are_valid);

@@ -76,3 +76,96 @@ test "[STRINGS MATCHING] \"asd\" in {\"bsd\", \"b3d\", \"bs6\", \"asd\", \"bd\"}
     std.debug.print("                           | Expected: {}", .{true});
     std.debug.print(" (\"asd\" in \"bsd\", \"b3d\", \"bs6\", \"asd\", \"bd\")\n", .{});
 }
+
+test "[STRINGS MATCHING] \"1\" in {\"2\", \"3\", \"4\", \"5\", \"6\"}" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+
+    var words = std.ArrayList([]const u8).init(gpa.allocator());
+    defer words.deinit();
+
+    try words.append("2");
+    try words.append("3");
+    try words.append("4");
+    try words.append("5");
+    try words.append("6");
+
+    const target = "1";
+    const result = tok.areEqualOneOfStrings(target, words);
+
+    std.debug.print("Result: {}", .{result});
+    std.debug.print("                          | Expected: {}", .{false});
+    std.debug.print(" (\"1\" in \"2\", \"3\", \"4\", \"5\", \"6\")\n", .{});
+}
+
+test "[STRINGS MATCHING] \"\" in {\"g\", \"o\", \"v\", \"n\", \"o\"}" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+
+    var words = std.ArrayList([]const u8).init(gpa.allocator());
+    defer words.deinit();
+
+    try words.append("g");
+    try words.append("o");
+    try words.append("v");
+    try words.append("n");
+    try words.append("o");
+
+    const target = "";
+    const result = tok.areEqualOneOfStrings(target, words);
+
+    std.debug.print("Result: {}", .{result});
+    std.debug.print("                          | Expected: {}", .{false});
+    std.debug.print(" (\"\" in \"g\", \"o\", \"v\", \"n\", \"o\")\n", .{});
+}
+
+test "[STRINGS MATCHING] \"word\" in {}" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+
+    var words = std.ArrayList([]const u8).init(gpa.allocator());
+    defer words.deinit();
+
+    const target = "";
+    const result = tok.areEqualOneOfStrings(target, words);
+
+    std.debug.print("Result: {}", .{result});
+    std.debug.print("                          | Expected: {}", .{false});
+    std.debug.print(" (\"word\" in empty arraylist)\n", .{});
+}
+
+test "[STRINGS MATCHING] \"\" in {}" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+
+    var words = std.ArrayList([]const u8).init(gpa.allocator());
+    defer words.deinit();
+
+    const target = "";
+    const result = tok.areEqualOneOfStrings(target, words);
+
+    std.debug.print("Result: {}", .{result});
+    std.debug.print("                          | Expected: {}", .{false});
+    std.debug.print(" (\"\" in empty arraylist)\n", .{});
+}
+
+test "[STRINGS MATCHING] \" \" in {\"g\", \"o\", \" \", \"n\", \" \"}" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+
+    var words = std.ArrayList([]const u8).init(gpa.allocator());
+    defer words.deinit();
+
+    try words.append("g");
+    try words.append("o");
+    try words.append(" ");
+    try words.append("n");
+    try words.append(" ");
+
+    const target = " ";
+    const result = tok.areEqualOneOfStrings(target, words);
+
+    std.debug.print("Result: {}", .{result});
+    std.debug.print("                           | Expected: {}", .{true});
+    std.debug.print(" (\" \" in \"g\", \"o\", \" \", \"n\", \" \")\n", .{});
+}
