@@ -25,6 +25,44 @@ pub fn splitByWords(string: []const u8, allocator: std.mem.Allocator) std.ArrayL
     return words;
 }
 
+pub fn areEqualOneOfStrings(target: []const u8, strings: std.ArrayList([]const u8)) bool {
+    // var valid_strings_ids: [strings.items.len]?usize = null ** strings.len;
+    var valid_strings_ids = strings.allocator.alloc(?usize, strings.items.len) catch unreachable;
+    for (valid_strings_ids) |*id| id.* = null;
+    defer strings.allocator.free(valid_strings_ids);
+
+    var valid_strings_len: usize = 0;
+
+    for (strings.items, 0..) |cur_string, i| {
+        if (cur_string.len == target.len) {
+            valid_strings_ids[valid_strings_len] = i;
+            valid_strings_len += 1;
+        }
+    }
+
+    // var are_valid: [valid_strings_len]bool = true ** valid_strings_len;
+    var are_valid = strings.allocator.alloc(bool, valid_strings_len) catch unreachable;
+    for (are_valid) |*is_valid| is_valid.* = true;
+    defer strings.allocator.free(are_valid);
+
+    var are_valid_trues_count = valid_strings_len;
+
+    for (0..target.len) |char_i| {
+        if (are_valid_trues_count <= 0) return false;
+
+        for (0..valid_strings_len) |string_i| {
+            if (!are_valid[string_i]) continue;
+
+            if (target[char_i] != strings.items[string_i][char_i]) {
+                are_valid[string_i] = false;
+                are_valid_trues_count -= 1;
+            }
+        }
+    }
+
+    return are_valid_trues_count > 0;
+}
+
 pub fn areEqualStrings(string1: []const u8, string2: []const u8) bool {
     if (string1.len != string2.len) return false;
 

@@ -51,7 +51,28 @@ test "[SPLIT]\"\"" {
 
     std.debug.print("Result: ", .{});
     for (words.items) |cur_word| std.debug.print("{s}, ", .{cur_word});
-    std.debug.print(" | Expected: \n", .{});
+    std.debug.print("                               | Expected: \n", .{});
 
     try expect(words.items.len == 0);
+}
+
+test "[STRINGS MATCHING] \"asd\" in {\"bsd\", \"b3d\", \"bs6\", \"asd\", \"bd\"}" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+
+    var words = std.ArrayList([]const u8).init(gpa.allocator());
+    defer words.deinit();
+
+    try words.append("bsd");
+    try words.append("b3d");
+    try words.append("bs6");
+    try words.append("asd");
+    try words.append("db");
+
+    const target = "asd";
+    const result = tok.areEqualOneOfStrings(target, words);
+
+    std.debug.print("Result: {}", .{result});
+    std.debug.print("                           | Expected: {}", .{true});
+    std.debug.print(" (\"asd\" in \"bsd\", \"b3d\", \"bs6\", \"asd\", \"bd\")\n", .{});
 }
