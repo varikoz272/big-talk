@@ -1,5 +1,6 @@
 const std = @import("std");
 const tok = @import("Token.zig");
+const lib = @import("lib.zig");
 const expect = std.testing.expect;
 
 test "[SPLIT] \"hello world\"" {
@@ -74,7 +75,7 @@ test "[STRINGS MATCHING] \"asd\" in {\"bsd\", \"b3d\", \"bs6\", \"asd\", \"bd\"}
 
     std.debug.print("Result: {}", .{result});
     std.debug.print("                           | Expected: {}", .{true});
-    std.debug.print(" (\"asd\" in \"bsd\", \"b3d\", \"bs6\", \"asd\", \"bd\")\n", .{});
+    std.debug.print("  (\"asd\" in \"bsd\", \"b3d\", \"bs6\", \"asd\", \"bd\")\n", .{});
 }
 
 test "[STRINGS MATCHING] \"1\" in {\"2\", \"3\", \"4\", \"5\", \"6\"}" {
@@ -167,5 +168,20 @@ test "[STRINGS MATCHING] \" \" in {\"g\", \"o\", \" \", \"n\", \" \"}" {
 
     std.debug.print("Result: {}", .{result});
     std.debug.print("                           | Expected: {}", .{true});
-    std.debug.print(" (\" \" in \"g\", \"o\", \" \", \"n\", \" \")\n", .{});
+    std.debug.print("  (\" \" in \"g\", \"o\", \" \", \"n\", \" \")\n", .{});
+}
+
+test "[IS STD CLASS] \"Num\"" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+
+    lib.init(gpa.allocator());
+    defer lib.deinit();
+
+    const target = "Num";
+    const result = lib.isStdClass(target);
+
+    std.debug.print("Result: {!}", .{result});
+    std.debug.print("                           | Expected: {}", .{true});
+    std.debug.print("  (Is {s} a std class)", .{target});
 }
